@@ -4,30 +4,48 @@
     <title>Tiny Chat</title>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <style>
-     .messages{
-      display: none;
-     }
+    .messages {
+      height: 200px;
+    }
+    .messages .sender{
+      float: left;
+      clear: left;
+      width: 120px;
+      margin-right: 10px;
+      text-align: right;
+      background-color: #ddd;
+    }
+    .messages .message{
+      float: left;
+    }
+
     </style>
     <script>
       $(function(){
         var source = new EventSource('/subscribe/everyone');
-        source.addEventListener('message', function(data) {
-          sender, message = data.split(':', 1)
+        source.addEventListener('message', function(event) {
+          message = JSON.parse(event.data);
           $('.messages').append(
-          "<div class=sender>"+sender+"</div>"+
-          "<div class=message>"+message+"</div>")
+          "<div class=sender>"+message.sender+"</div>"+
+          "<div class=message>"+message.message+"</div>");
         });
 
-        $(form).submit(function(e){
+        $('form').submit(function(e){
           e.preventDefault();
           $.post($('.room option:selected').val(),
             {
-              message: $('.message').val()
+              sender: $('.name').text(),
+              message: $('form .message').val()
             }
            )
-        $('.message').val('')
-        }
+        $('form .message').val('')
       });
+
+      $('.change-name').click(function(){
+        name = prompt("Enter your name:");
+        $('.name').text(name);
+      });
+     });
     </script>
   </head>
   <body>
@@ -36,7 +54,7 @@
     <select class=room>
       <option>everyone</option>
     </select>
-    <span class=name>Anonomous:</span>
+    <span class=name>Anonymous</span><span>:</span>
     <input class="message" placeholder="Message..."/>
     <input type="submit" value="Send" />
   </form>

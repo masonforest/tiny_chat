@@ -1,5 +1,6 @@
 require 'goliath'
 require 'redis'
+require 'json'
 
 module Options
   def self.redis
@@ -18,8 +19,10 @@ class Subscribe < Goliath::API
       @redis = Redis.new(Options::redis)
       channel = env["REQUEST_PATH"].sub(/^\/subscribe\//, '')
       @redis.subscribe(channel) do |on|
-        on.message do |channel, hook|
-          env.stream_send("#{hook}\r\n\n")
+        on.message do |channel, message|
+          @message = message
+          p payload
+          env.stream_send(payload)
         end
       end
     end
@@ -32,6 +35,12 @@ class Subscribe < Goliath::API
   def on_close(env)
     @redis.disconnect
   end
+
+  def payload
+    "id: #{Time.now}\n" +
+    "data: #{@message}" +
+    "\r\n\n"
+  end
 end
 
 class Receive < Goliath::API
@@ -39,10 +48,7 @@ class Receive < Goliath::API
 
   def response(env)
     channel = env["REQUEST_PATH"][1..-1]
-    require 'pry'
-    binding.pry
-    #sender
-    @@redis.publish(channel, "#{sender}:#{message}")
+    @@redis.publish(channel, params.to_json)
     [ 200, { }, [ ] ]
   end
 end
