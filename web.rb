@@ -1,6 +1,7 @@
 require 'goliath'
 require 'redis'
 require 'json'
+require 'rack/utils'
 
 module Options
   def self.redis
@@ -21,14 +22,11 @@ class Subscribe < Goliath::API
       @redis.subscribe(channel) do |on|
         on.message do |channel, message|
           @message = message
-          p payload
           env.stream_send(payload)
         end
       end
     end
-    EventMachine.add_periodic_timer(30) do
-      env.stream_send("\r\n\n")
-    end
+
     streaming_response(200, { 'Content-Type' => "text/event-stream" })
   end
 
@@ -48,7 +46,8 @@ class Receive < Goliath::API
 
   def response(env)
     channel = env["REQUEST_PATH"][1..-1]
-    @@redis.publish(channel, params.to_json)
+    message = Rack::Utils.escape_html(params["message"])
+    @@redis.publish(channel, {sender: params["sender"], message: message}.to_json)
     [ 200, { }, [ ] ]
   end
 end

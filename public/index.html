@@ -5,6 +5,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <style>
     .messages {
+      overflow: scroll;
       height: 200px;
     }
     .messages .sender{
@@ -18,12 +19,16 @@
     .messages .message{
       float: left;
     }
+    form {
+      display: inline;
+    }
 
     </style>
     <script>
       $(function(){
         var source = new EventSource('/subscribe/everyone');
         source.addEventListener('message', function(event) {
+          console.log(event.data)
           message = JSON.parse(event.data);
           $('.messages').append(
           "<div class=sender>"+message.sender+"</div>"+
@@ -32,33 +37,30 @@
 
         $('form').submit(function(e){
           e.preventDefault();
-          $.post($('.room option:selected').val(),
+          $.post('/everyone',
             {
               sender: $('.name').text(),
               message: $('form .message').val()
-            }
-           )
-        $('form .message').val('')
-      });
+            })
+          $('form .message').val('')
+        });
 
-      $('.change-name').click(function(){
-        name = prompt("Enter your name:");
-        $('.name').text(name);
-      });
+        $('.change-name').click(function(){
+          name = prompt("Enter your name:");
+          $('.name').text(name);
+        });
      });
     </script>
   </head>
   <body>
     <div class=messages></div>
+    <button class=change-name>Change Name</button>
+    <span class=name>Anonymous</span>
+    <span>:</span>
   <form>
-    <select class=room>
-      <option>everyone</option>
-    </select>
-    <span class=name>Anonymous</span><span>:</span>
     <input class="message" placeholder="Message..."/>
     <input type="submit" value="Send" />
   </form>
-  <button class=change-name>Change Name</button>
   </body>
 </html>
 
