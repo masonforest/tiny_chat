@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tiny Chat</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <style>
+     .messages{
+      display: none;
+     }
+    </style>
+    <script>
+      $(function(){
+        var source = new EventSource('/subscribe/everyone');
+        source.addEventListener('message', function(data) {
+          sender, message = data.split(':', 1)
+          $('.messages').append(
+          "<div class=sender>"+sender+"</div>"+
+          "<div class=message>"+message+"</div>")
+        });
+
+        $(form).submit(function(e){
+          e.preventDefault();
+          $.post($('.room option:selected').val(),
+            {
+              message: $('.message').val()
+            }
+           )
+        $('.message').val('')
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class=messages></div>
+  <form>
+    <select class=room>
+      <option>everyone</option>
+    </select>
+    <span class=name>Anonomous:</span>
+    <input class="message" placeholder="Message..."/>
+    <input type="submit" value="Send" />
+  </form>
+  <button class=change-name>Change Name</button>
+  </body>
+</html>
+
