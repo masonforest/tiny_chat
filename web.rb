@@ -5,8 +5,8 @@ require 'json'
 module Options
   def self.redis
     options = {driver: :synchrony}
-    if ENV['REDIS_URI']
-      uri = URI.parse(ENV['REDIS_URI'])
+    if ENV['REDISTOGO_URL']
+      uri = URI.parse(ENV['REDISTOGO_URL'])
       options.merge!({host: uri.host, port: uri.port, password: uri.password})
     end
     options
